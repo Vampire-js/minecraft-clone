@@ -5,7 +5,7 @@ export class FPSCamera {
   constructor(camera) {
     this.camera = camera;
     this.controls = new PointerLockControls(camera, document.body);
-    this.speed = 0.05
+    this.speed = 0.1
 }
   init(scene) {
     scene.add(this.controls.getObject());

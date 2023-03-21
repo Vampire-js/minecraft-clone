@@ -3,3 +3,22 @@
   margin: 0px;
   overflow: hidden;
 }
+.inventory{
+  position: fixed; 
+  bottom: 0%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+
+}
+.items{
+  width: 40vw;
+}
+._pointer{
+  width: 25px;
+  position: fixed; 
+  bottom: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+}

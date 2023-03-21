@@ -3,12 +3,17 @@ import { materials } from "./materials";
 import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader";
 import { SimplexNoise } from "three/examples/jsm/math/SimplexNoise";
 import { EffectsManager } from "./EffectsManager";
+import { TreesManager } from "./TreesManager";
 
 export class WorldManager {
   constructor(scene, renderer, camera) {
     this.scene = scene;
-    this.camera = camera
+    this.camera = camera;
     this.mesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), materials.grass);
+    this.treeMesh = new THREE.Mesh(
+      new THREE.BoxGeometry(1, 1, 1),
+      materials.debug
+    );
     this.instancedMesh = new THREE.InstancedMesh(
       this.mesh.geometry,
       this.mesh.material,
@@ -16,12 +21,14 @@ export class WorldManager {
     );
     this.loader = new THREE.TextureLoader();
     this.effectsManager = new EffectsManager(renderer, this.scene, camera);
+    this.treesManager = new TreesManager(this.scene, this.instancedMesh);
     this.simplex = new SimplexNoise();
     this.dummy = new THREE.Object3D();
     this.side = 160;
     this.depth = 8;
     this.chunks = new Array();
-    this.frame = 0
+    this.trees = new Array();
+    this.frame = 0;
   }
   init() {
     this.mesh.castShadow = true;
@@ -29,12 +36,14 @@ export class WorldManager {
 
     this.makeInstancedMesh();
     this.lightsManager();
+    // this.treesManager.spawnTrees(this.camera)
     this.addWater();
     // this.setupAmbientLighting()
     this.setupSky();
     this.effectsManager.init();
-    this.effectsManager.updateColors({r:.5 , g:.5 , b:.5})
+    this.effectsManager.updateColors({ r: 0.5, g: 0.5, b: 0.5 });
 
+    this.trees.map((tree) => this.scene.add(tree));
   }
   makeInstancedMesh() {
     this.instancedMesh.receiveShadow = true;
@@ -46,9 +55,14 @@ export class WorldManager {
   updateInstancedMesh() {
     for (let x = 0; x < this.side; x++) {
       for (let y = 0; y < this.side; y++) {
+        let yCoord = Math.floor(
+          this.simplex.noise(x / 50, y / 50) * this.depth
+        );
+
         this.dummy.position.set(
           x,
-          Math.floor(this.simplex.noise(x / 50, y / 50) * this.depth),
+
+          yCoord,
           y
         );
         this.dummy.updateMatrix();
@@ -73,7 +87,7 @@ export class WorldManager {
 
     waterMat.wrapS = THREE.RepeatWrapping;
     waterMat.wrapT = THREE.RepeatWrapping;
-    waterMat.repeat.set(185,185);
+    waterMat.repeat.set(185, 185);
 
     this.water = new THREE.Mesh(
       new THREE.PlaneGeometry(this.side, this.side),
@@ -82,7 +96,6 @@ export class WorldManager {
     this.water.position.set(this.side / 2, -3, this.side / 2);
     this.water.rotation.set(-Math.PI / 2, 0, 0);
     this.scene.add(this.water);
-
   }
   lightsManager() {
     const light = new THREE.DirectionalLight(0xffffff, 1);
@@ -149,23 +162,15 @@ export class WorldManager {
     this.scene.add(mesh);
   }
 
-  spawnTrees(){
-
-  }
-
   update() {
-    
     this.effectsManager.render();
-    
+
     // if(this.camera.position.y <= this.water.position.y){
     //   this.effectsManager.updateColors({r:.5 , g:.5 , b:1})
     // }
     // if(this.camera.position.y >= this.water.position.y && this.effectsManager.color.b == 1){
-    //   this.effectsManager.updateColors({r:.5 , g:.5 , b:.5})  
+    //   this.effectsManager.updateColors({r:.5 , g:.5 , b:.5})
     //   this.effectsManager.color.b = .5
     // }
-  
-
-    
   }
 }

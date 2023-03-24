@@ -22,6 +22,7 @@ document.body.appendChild(renderer.domElement);
 camera.position.set(22.09,5.4,62.44)
 
 const worldManager = new WorldManager(scene , renderer , camera);
+
 worldManager.init();
 
 const controls = new FPSCamera(camera)

@@ -25,66 +25,68 @@ export class WorldManager {
     this.simplex = new SimplexNoise();
     this.dummy = new THREE.Object3D();
     this.side = 16;
-    this.depth = 16;
-    this.heightMap = new Array();
-    this.trees = new Array();
+    this.depth = 8;
     this.chunks = new Array();
+    this.trees = new Array();
     this.frame = 0;
   }
   init() {
     this.mesh.castShadow = true;
     this.mesh.receiveShadow = true;
 
-
+    
     this.lightsManager();
     // this.treesManager.spawnTrees(this.camera)
-    this.addWater();    
-    this.generateTerrain()
-    this.addChunk()
-    this.addChunk()
-    this.addChunk()
-
-
+    this.addWater();
     // this.setupAmbientLighting()
+    this.addChunk()
+    this.addChunk()
+    this.addChunk()
+    this.addChunk()
+    this.addChunk()
+    this.addChunk()
+    this.addChunk()
     this.setupSky();
     this.effectsManager.init();
     this.effectsManager.updateColors({ r: 0.5, g: 0.5, b: 0.5 });
 
     this.trees.map((tree) => this.scene.add(tree));
   }
-  generateTerrain(){
-    
-    for(let val=0; val<this.chunks.length; val++){
-    for (let i = 0; i < this.side; i++) {
-      this.heightMap[i] = [];
-    }
-    
-    // Generate the heightmap using Perlin noise
-    for (let i = 0; i < this.side; i++) {
-      for (let j = 0; j < this.depth; j++) {
-        const x = i / this.side;
-        const y = j / this.depth;
-        this.heightMap[i][j] = this.simplex.noise(x, y);
-      }
-    }
-    console.log(this.heightMap)
-
-    const matrix = new THREE.Matrix4()
-    let index = 0
-
-      val >=1 ?this.chunks[val].position.x = this.chunks[val-1].position.x + 16  :null
-    for(let i =0; i<this.side; i++){
-      for(let j=0; j<this.depth; j++){
-        matrix.setPosition(i, Math.floor(this.heightMap[i][j] * 3.5), j);
-        this.chunks[val].setMatrixAt(index , matrix)
-        index++
-      }
-    
-
-      
-    this.scene.add(this.chunks[val])
-    }
+  makeInstancedMesh(pos) {
+    this.chunks.map((chunk) => {
+      chunk.receiveShadow = true;
+      chunk.castShadow = true;
+      this.scene.add(chunk);
+    });
+    this.updateInstancedMesh();
   }
+
+  updateInstancedMesh() {
+    for (let i = 0; i < this.chunks.length; i++) {
+      i >= 1
+        ? (this.chunks[i].position.x = this.chunks[i - 1].position.x + this.side/2)
+        : null;
+      for (let x = 0; x < this.side; x++) {
+        for (let y = 0; y < this.side; y++) {
+          let yCoord = Math.floor(
+            this.simplex.noise(
+              (this.chunks[i].position.x*2 + x) / 50,
+              (this.chunks[i].position.z*2 + y) / 50
+            ) * this.depth
+          );
+
+          this.dummy.position.set(
+            x + this.chunks[i].position.x,
+
+            yCoord,
+            y + this.chunks[i].position.y
+          );
+          this.dummy.updateMatrix();
+          this.chunks[i].setMatrixAt(x * this.side + y, this.dummy.matrix);
+        }
+        this.chunks[i].needsUpdate = true;
+      }
+    }
   }
   addHdri(e) {
     let loader = new RGBELoader();
@@ -176,17 +178,23 @@ export class WorldManager {
     mesh.rotation.x = Math.PI * -0.5;
     this.scene.add(mesh);
   }
-
-  addChunk() {
-    this.chunks.push(
-      new THREE.InstancedMesh(this.mesh.geometry, this.mesh.material, 256)
-    );
-    console.log(this.chunks)
-  }
-
+addChunk(){
+  this.chunks.push(new THREE.InstancedMesh(
+    this.mesh.geometry,
+    this.mesh.material,
+    256
+  ))
+}
   update() {
     this.effectsManager.render();
-    this.generateTerrain()
-   
+    this.makeInstancedMesh();
+
+    // if(this.camera.position.y <= this.water.position.y){
+    //   this.effectsManager.updateColors({r:.5 , g:.5 , b:1})
+    // }
+    // if(this.camera.position.y >= this.water.position.y && this.effectsManager.color.b == 1){
+    //   this.effectsManager.updateColors({r:.5 , g:.5 , b:.5})
+    //   this.effectsManager.color.b = .5
+    // }
   }
 }

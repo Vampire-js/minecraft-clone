@@ -5,7 +5,7 @@ import { FPSCamera } from "./src/PlayerController";
 
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x77a8ff);
+scene.background = new THREE.Color("#41b1f2");
 const camera = new THREE.PerspectiveCamera(
   75,
   window.innerWidth / window.innerHeight,
@@ -19,7 +19,8 @@ renderer.shadowMap.enabled = true
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-camera.position.set(22.09,5.4,62.44)
+camera.position.set(12.341603543921833, 
+  55.54026855383366,16.70519393182329)
 
 const worldManager = new WorldManager(scene , renderer , camera);
 
